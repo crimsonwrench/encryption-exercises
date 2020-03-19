@@ -1,0 +1,9 @@
+[package]
+name = "encryption"
+description = "Collection of encryption algorithm exercises"
+version = "0.1.0"
+authors = ["crimsonwrench <garon312@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+rand = "*"
