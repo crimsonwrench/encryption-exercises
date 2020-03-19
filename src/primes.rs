@@ -1,3 +1,5 @@
+use std::fmt::Debug;
+
 pub struct Primes {
     primes: Vec<usize>,
     current: usize,
@@ -17,7 +19,7 @@ impl Primes {
 impl Iterator for Primes {
     type Item = usize;
 
-    fn next(&mut self) -> Option<usize> {
+    fn next(&mut self) -> Option<Self::Item> {
 
         if self.current >= self.max {
             return None;
@@ -26,6 +28,53 @@ impl Iterator for Primes {
         for i in self.current..usize::max_value() {
             if self.primes.iter().all(|&x| i % x != 0) {
                 self.primes.push(i);
+                self.current = i + 1;
+                return Some(i);
+            }
+        }
+        panic!("Integer overflow")
+    }
+}
+
+#[derive(Debug)]
+pub struct MutuallyPrimes {
+    current: usize,
+    with: usize,
+    max: usize,
+}
+
+impl MutuallyPrimes {
+    fn greatest_common_divisor(mut a: usize, mut b: usize) -> usize {
+        while a != 0 {
+            let old_a = a;
+            a = b % a;
+            b = old_a;
+        }
+        b
+    }
+
+    pub fn new(with: usize, max: usize) -> Self {
+        MutuallyPrimes {
+            current: with,
+            with,
+            max,
+        }
+    }
+}
+
+impl Iterator for MutuallyPrimes {
+    type Item = usize;
+
+    fn next(&mut self) -> Option<Self::Item> {
+
+        if self.current >= self.max {
+            return None;
+        }
+
+        for i in self.current..usize::max_value() {
+            let value: usize = MutuallyPrimes::greatest_common_divisor(self.with, i);
+
+            if value == 1 {
                 self.current = i + 1;
                 return Some(i);
             }
