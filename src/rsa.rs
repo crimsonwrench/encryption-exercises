@@ -1,24 +1,83 @@
 use crate::primes::{Primes, MutuallyPrimes};
 use rand::seq::IteratorRandom;
 
-pub fn generate_rsa() -> (usize, usize, usize) {
-    // Initialize lazily-initialized thread-local number generator
-    let mut rng = rand::thread_rng();
+struct NumberE {
+    current: usize,
+    euler: usize,
+    d: usize
+}
 
-    // Generate a vector containing two random prime numbers
-    let primes: Vec<usize> = Primes::new(1000).choose_multiple(&mut rng, 2);
+impl NumberE {
+    pub fn new(euler: usize, d: usize) -> Self {
+        NumberE {
+            current: 1,
+            euler,
+            d
+        }
+    }
+}
 
-    // Get product of prime numbers
-    let n: usize = primes.iter().product();
+impl Iterator for NumberE {
+    type Item = usize;
 
-    // Get euler's function value for given primes
-    let euler: usize = (primes[0] - 1) * (primes[1] - 1);
+    fn next(&mut self) -> Option<Self::Item> {
+        for i in self.current..Self::Item::max_value() {
+            if (i * self.d) % self.euler == 1 {
+                self.current = i + 1;
+                return Some(i);
+            }
+        }
 
-    // Get random mutually prime number with euler's function in range [euler; euler * 2]
-    let d: usize = MutuallyPrimes::new(euler, euler * 2).choose(&mut rng).unwrap();
+        None
+    }
+}
 
-    // TODO: Get a number matching condition: (e * d) mod euler == 1
-    let e: usize = 1;
+pub struct Rsa {
+    public_part: usize,
+    private_part: usize,
+    n: usize
+}
 
-    (n, e, d)
+impl Rsa {
+    pub fn new() -> Self {
+        let keys: (usize, usize, usize) = Self::generate_rsa();
+        Rsa {
+            public_part: keys.0,
+            private_part: keys.1,
+            n: keys.2
+        }
+    }
+
+    pub fn encode(&self, string: String) -> Vec<usize> {
+        // TODO: Encoding
+        vec![1, 2, 3]
+    }
+
+    pub fn decode(&self, string: String) -> String {
+        // TODO: Decoding
+        String::from("Test")
+    }
+
+    fn generate_rsa() -> (usize, usize, usize) {
+        // Initialize lazily-initialized thread-local number generator
+        let mut rng = rand::thread_rng();
+
+        // Generate two random primes within a given max value
+        let first_prime: usize = Primes::new(1000).choose(&mut rng).unwrap();
+        let second_prime: usize = Primes::new(1000).choose(&mut rng).unwrap();
+
+        // Get product of prime numbers
+        let n: usize = first_prime * second_prime;
+
+        // Get euler's function value for given primes
+        let euler: usize = (first_prime - 1) * (second_prime - 1);
+
+        // Get mutually prime number with euler's function in range [euler; euler * 2]
+        let d: usize = MutuallyPrimes::new(euler, euler * 2).choose(&mut rng).unwrap();
+
+        // Get a number matching condition: (e * d) % euler == 1
+        let e = NumberE::new(euler, d).next().unwrap();
+
+        (e, d, n)
+    }
 }

@@ -1,5 +1,3 @@
-use std::fmt::Debug;
-
 pub struct Primes {
     primes: Vec<usize>,
     current: usize,
@@ -32,11 +30,11 @@ impl Iterator for Primes {
                 return Some(i);
             }
         }
-        panic!("Integer overflow")
+
+        None
     }
 }
 
-#[derive(Debug)]
 pub struct MutuallyPrimes {
     current: usize,
     with: usize,
@@ -72,13 +70,14 @@ impl Iterator for MutuallyPrimes {
         }
 
         for i in self.current..usize::max_value() {
-            let value: usize = MutuallyPrimes::greatest_common_divisor(self.with, i);
+            let value: usize = Self::greatest_common_divisor(self.with, i);
 
             if value == 1 {
                 self.current = i + 1;
                 return Some(i);
             }
         }
-        panic!("Integer overflow")
+
+        None
     }
 }

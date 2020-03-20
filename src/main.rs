@@ -1,6 +1,9 @@
 mod primes;
 mod rsa;
 
+use rsa::Rsa;
+
 fn main() {
-    println!("{:#?}", rsa::generate_rsa())
+    let rsa: Rsa = Rsa::new();
+    println!("{:?}", rsa.encode(String::from("Test")));
 }
