@@ -1,3 +1,4 @@
+mod atbash;
 mod primes;
 mod rsa;
 
