@@ -58,26 +58,22 @@ impl Rsa {
             .join("-")
     }
 
-    pub fn decode(&self, string: &str) -> Option<String> {
-        let letters: Vec<u8> = string
+    pub fn decode(&self, code_chain: &str) -> Option<String> {
+        let decoded_chunks: Vec<u8> = code_chain
             .split("-")
             .collect::<Vec<&str>>()
             .iter()
-            .map(|&str| match str.parse::<usize>() {
-                Ok(_parsed) => Some(mod_exp::mod_exp(
-                    str.parse::<usize>().unwrap(),
-                    self.private_part,
-                    self.n,
-                ) as u8),
+            .map(|&chunk| match chunk.trim().parse::<usize>() {
+                Ok(parsed) => Some(mod_exp::mod_exp(parsed, self.private_part, self.n) as u8),
                 Err(error) => {
-                    println!("Could not parse input {:?}", error);
+                    println!("Could not parse chunk \"{}\": {:?}", chunk.trim(), error);
                     None
                 }
             })
             .flatten()
             .collect();
 
-        String::from_utf8(letters).ok()
+        String::from_utf8(decoded_chunks).ok()
     }
 
     fn generate_rsa() -> (usize, usize, usize) {
@@ -85,8 +81,8 @@ impl Rsa {
         let mut rng = rand::thread_rng();
 
         // Generate two random primes within a given max value
-        let first_prime: usize = Primes::new(1000).choose(&mut rng).unwrap();
-        let second_prime: usize = Primes::new(1000).choose(&mut rng).unwrap();
+        let first_prime: usize = Primes::new(10000).choose(&mut rng).unwrap();
+        let second_prime: usize = Primes::new(10000).choose(&mut rng).unwrap();
 
         // Get product of prime numbers
         let n: usize = first_prime * second_prime;
@@ -95,9 +91,7 @@ impl Rsa {
         let euler: usize = (first_prime - 1) * (second_prime - 1);
 
         // Get mutually prime number with euler's function in range [euler; euler * 2]
-        let d: usize = MutuallyPrimes::new(euler, euler * 2)
-            .choose(&mut rng)
-            .unwrap();
+        let d: usize = MutuallyPrimes::new(euler, 20).choose(&mut rng).unwrap();
 
         // Get a number matching condition: (e * d) % euler == 1
         let e = NumberE::new(euler, d).next().unwrap();
@@ -107,20 +101,20 @@ impl Rsa {
 }
 
 mod tests {
-    use crate::rsa::Rsa;
-
     #[test]
     fn ensure_integrity() {
+        use crate::rsa::Rsa;
+
         let rsa: Rsa = Rsa::new();
-        let messages: [&str; 3] = [
+        [
             "The quick brown fox jumps over the lazy dog",
             "Test123",
             "!@#$%^&",
-        ];
-
-        for &message in &messages {
-            let encoded: String = rsa.encode(message);
-            assert_eq!(rsa.decode(encoded.as_str()), Some(String::from(message)))
-        }
+        ]
+        .iter()
+        .for_each(|msg: &&str| {
+            let encoded: String = rsa.encode(msg);
+            assert_eq!(rsa.decode(encoded.as_str()), Some(String::from(*msg)))
+        });
     }
 }

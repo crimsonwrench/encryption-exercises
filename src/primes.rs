@@ -1,7 +1,7 @@
 pub struct Primes {
     primes: Vec<usize>,
     current: usize,
-    max: usize
+    max: usize,
 }
 
 impl Primes {
@@ -9,7 +9,7 @@ impl Primes {
         Primes {
             primes: vec![],
             current: 2,
-            max
+            max,
         }
     }
 }
@@ -18,7 +18,6 @@ impl Iterator for Primes {
     type Item = usize;
 
     fn next(&mut self) -> Option<Self::Item> {
-
         if self.current >= self.max {
             return None;
         }
@@ -38,7 +37,8 @@ impl Iterator for Primes {
 pub struct MutuallyPrimes {
     current: usize,
     with: usize,
-    max: usize,
+    max_count: usize,
+    matches: Vec<usize>,
 }
 
 impl MutuallyPrimes {
@@ -51,11 +51,12 @@ impl MutuallyPrimes {
         b
     }
 
-    pub fn new(with: usize, max: usize) -> Self {
+    pub fn new(with: usize, max_count: usize) -> Self {
         MutuallyPrimes {
             current: with,
             with,
-            max,
+            max_count,
+            matches: vec![],
         }
     }
 }
@@ -64,8 +65,7 @@ impl Iterator for MutuallyPrimes {
     type Item = usize;
 
     fn next(&mut self) -> Option<Self::Item> {
-
-        if self.current >= self.max {
+        if self.matches.len() >= self.max_count {
             return None;
         }
 
@@ -73,6 +73,7 @@ impl Iterator for MutuallyPrimes {
             let value: usize = Self::greatest_common_divisor(self.with, i);
 
             if value == 1 {
+                self.matches.push(i);
                 self.current = i + 1;
                 return Some(i);
             }
