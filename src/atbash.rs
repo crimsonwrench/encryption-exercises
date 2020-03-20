@@ -1,11 +1,10 @@
-pub fn encode_atbash(alphabet: &str, message: &str) -> String {
+pub fn encode(alphabet: &str, message: &str) -> String {
     message
         .chars()
         .map(|ch| {
             return match alphabet
-                .to_lowercase()
                 .chars()
-                .position(|alphabet_ch: char| ch == alphabet_ch)
+                .position(|alphabet_ch: char| ch.to_uppercase().next().unwrap() == alphabet_ch)
             {
                 Some(index) => {
                     let result: char = alphabet
@@ -29,7 +28,7 @@ pub fn encode_atbash(alphabet: &str, message: &str) -> String {
 mod tests {
     #[test]
     fn test_encoding() {
-        use crate::atbash::encode_atbash;
+        use crate::atbash::encode;
 
         [
             "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ",
@@ -37,8 +36,8 @@ mod tests {
         ]
         .iter()
         .for_each(|msg: &&str| {
-            let encoded_message: String = encode_atbash(msg, msg);
-            let decoded_message: String = encode_atbash(msg, encoded_message.as_str());
+            let encoded_message: String = encode(msg, msg);
+            let decoded_message: String = encode(msg, encoded_message.as_str());
             assert_eq!(decoded_message, String::from(*msg));
         });
     }
