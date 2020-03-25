@@ -19,7 +19,7 @@ impl Symmetric {
             .map(|ch: char| {
                 let alphabet_case: &String = self.get_case(&ch);
                 match alphabet_case.chars().position(|alphabet_ch: char| alphabet_ch == ch) {
-                    Some(position) => alphabet_case.chars().nth(self.size - position - 1).unwrap(),
+                    Some(position) => self.shift_character(alphabet_case, self.size, -(position as i32  + 1)),
                     None => ch
                 }
             }).collect()
@@ -31,9 +31,20 @@ impl Symmetric {
             .map(|ch: char| {
                 let alphabet_case: &String = self.get_case(&ch);
                 match alphabet_case.chars().position(|alphabet_ch: char| alphabet_ch == ch) {
-                    Some(position) => {
-                        return alphabet_case.chars().nth(((position as i32 + shift).rem_euclid(self.size as i32)) as usize).unwrap();
-                    },
+                    Some(position) => self.shift_character(alphabet_case, position, shift),
+                    None => ch
+                }
+            }).collect()
+    }
+
+    pub fn gronsfeld(&self, message: &str, key: &Vec<i32>) -> String {
+        message
+            .chars()
+            .enumerate()
+            .map(|(index, ch)| {
+                let alphabet_case: &String = self.get_case(&ch);
+                match alphabet_case.chars().position(|alphabet_ch: char| alphabet_ch == ch) {
+                    Some(position) => self.shift_character(alphabet_case, position, *key.iter().nth(index % key.len()).unwrap()),
                     None => ch
                 }
             }).collect()
@@ -45,6 +56,13 @@ impl Symmetric {
         }
 
         &self.chars_uc
+    }
+
+    fn shift_character(&self, alphabet: &String, position: usize, value: i32) -> char {
+        alphabet
+            .chars()
+            .nth(((position as i32 + value).rem_euclid(self.size as i32)) as usize)
+            .unwrap()
     }
 }
 
@@ -97,7 +115,6 @@ mod tests {
 
         let cipher = Symmetric::new(latin_alphabet);
 
-
         vec![
             "The quick brown fox jumps over the lazy dog",
             "test",
@@ -110,5 +127,54 @@ mod tests {
                     String::from(*sentence)
                 )
             })
+    }
+
+    #[test]
+    fn gronsfeld_symmetry() {
+        use crate::symmetric::Symmetric;
+        use std::collections::HashMap;
+        use rand::Rng;
+        use rand::thread_rng;
+
+        let mut tests = HashMap::new();
+
+        tests.insert(
+            "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ",
+            vec![
+                "тест",
+                "ТЕСТ",
+                "Съешь ещё этих мягких французских булок, да выпей же чаю",
+            ],
+        );
+        tests.insert(
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+            vec![
+                "test",
+                "TEST",
+                "The quick brown fox jumps over the lazy dog",
+            ],
+        );
+
+        for (alphabet, sentences) in tests {
+            let cipher = Symmetric::new(alphabet);
+
+            // Generate a key of random length from 1 to alphabet length and of random numbers from 1 to 9
+            let random_shift_length = thread_rng().gen_range(1, alphabet.len());
+            let key: Vec<i32> = (1..random_shift_length).map(|_| thread_rng().gen_range(1, 9)).collect();
+
+            sentences.iter().for_each(|sentence| {
+                // Generate random cipher key
+
+                let encoded_string: String = cipher.gronsfeld(sentence, &key);
+
+                // Now shift backwards by applying the reversed key
+                let key_reversed: Vec<i32> = key.iter().map(|el| -el).collect();
+
+                assert_eq!(
+                    cipher.gronsfeld(&encoded_string, &key_reversed),
+                    String::from(*sentence)
+                );
+            })
+        }
     }
 }
