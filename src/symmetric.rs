@@ -163,11 +163,9 @@ mod tests {
             let key: Vec<i32> = (1..random_shift_length).map(|_| thread_rng().gen_range(1, 9)).collect();
 
             sentences.iter().for_each(|sentence| {
-                // Generate random cipher key
-
                 let encoded_string: String = cipher.gronsfeld(sentence, &key);
 
-                // Now shift backwards by applying the reversed key
+                // Decode the string by reversing the key and applying it on the encoded string
                 let key_reversed: Vec<i32> = key.iter().map(|el| -el).collect();
 
                 assert_eq!(
