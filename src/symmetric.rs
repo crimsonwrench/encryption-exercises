@@ -160,7 +160,7 @@ mod tests {
 
             // Generate a key of random length from 1 to alphabet length and of random numbers from 1 to 9
             let random_shift_length = thread_rng().gen_range(1, alphabet.len());
-            let key: Vec<i32> = (1..random_shift_length).map(|_| thread_rng().gen_range(1, 9)).collect();
+            let key: Vec<i32> = (0..random_shift_length).map(|_| thread_rng().gen_range(1, 9)).collect();
 
             sentences.iter().for_each(|sentence| {
                 let encoded_string: String = cipher.gronsfeld(sentence, &key);

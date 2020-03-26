@@ -1,5 +1,4 @@
 mod symmetric;
-mod primes;
 mod rsa;
 
 use crate::rsa::Rsa;
@@ -8,7 +7,7 @@ use crate::symmetric::Symmetric;
 
 fn main() {
     println!("Generating rsa keys...");
-    let rsa: Rsa = Rsa::new();
+    let rsa: Rsa = Rsa::new(1000);
     loop {
         println!("---Encryption exercises---");
         println!("(1) Encode input using RSA algorithm");
